@@ -48,82 +48,138 @@ function getPadId(padIndex) {
 // サンプルデータを事前に準備（AudioContext初期化なし）
 // ユーザー操作時に初めてAudioContextを初期化
 let samplesInitialized = false;
+let samplesLoading = false;
 
-async function initializeSamples() {
-  if (samplesInitialized) return;
-
-  await audioEngine.init();
-  const sampleRate = audioEngine.context.sampleRate;
-
-  // バンク1: 伯方の塩サンプルをロード
-  const hakataSamples = [
-    { id: '1-1', file: '/samples/chop_伯方の塩.wav', label: '伯方の塩' },
-    { id: '1-2', file: '/samples/chop_は.wav', label: 'は' },
-    { id: '1-3', file: '/samples/chop_か.wav', label: 'か' },
-    { id: '1-4', file: '/samples/chop_た.wav', label: 'た' },
-    { id: '1-5', file: '/samples/chop_の.wav', label: 'の' },
-    { id: '1-6', file: '/samples/chop_し.wav', label: 'し' },
-    { id: '1-7', file: '/samples/chop_お.wav', label: 'お' }
-  ];
-
-  for (const sample of hakataSamples) {
+/**
+ * 単一サンプルをリトライ付きでロード
+ */
+async function loadSampleWithRetry(sample, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch(sample.file);
+      const response = await fetch(sample.file, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
       const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioEngine.context.decodeAudioData(arrayBuffer);
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error('Empty response');
+      }
+      // ArrayBufferをコピーしてからデコード（再利用防止）
+      const bufferCopy = arrayBuffer.slice(0);
+      const audioBuffer = await audioEngine.context.decodeAudioData(bufferCopy);
       audioEngine.samples.set(sample.id, {
         buffer: audioBuffer,
         settings: { volume: 1.0, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
       });
+      console.log(`✓ Loaded ${sample.label}`);
+      return true;
     } catch (e) {
-      console.error(`Failed to load ${sample.label}:`, e);
+      console.warn(`Attempt ${attempt}/${maxRetries} failed for ${sample.label}:`, e.message);
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 100 * attempt)); // バックオフ
+      }
     }
   }
+  console.error(`✗ Failed to load ${sample.label} after ${maxRetries} attempts`);
+  return false;
+}
 
-  // バンク2: ドラムセット（9パッド）
-  const drumSounds = [
-    { id: '2-1', name: 'Kick', gen: () => generateKick(sampleRate) },
-    { id: '2-2', name: 'Snare', gen: () => generateSnare(sampleRate) },
-    { id: '2-3', name: 'Clap', gen: () => generateClap(sampleRate) },
-    { id: '2-4', name: 'Hi-Hat Closed', gen: () => generateHiHat(sampleRate, 0.1) },
-    { id: '2-5', name: 'Hi-Hat Open', gen: () => generateHiHat(sampleRate, 0.4) },
-    { id: '2-6', name: 'Tom', gen: () => generateTom(sampleRate, 150) },
-    { id: '2-7', name: 'Crash', gen: () => generateCrash(sampleRate) },
-    { id: '2-8', name: '808 Kick', gen: () => generate808Kick(sampleRate) },
-    { id: '2-9', name: 'Shaker', gen: () => generateShaker(sampleRate) }
-  ];
+async function initializeSamples() {
+  if (samplesInitialized || samplesLoading) return;
+  samplesLoading = true;
 
-  for (const drum of drumSounds) {
-    const buffer = drum.gen();
-    audioEngine.samples.set(drum.id, {
-      buffer: buffer,
-      settings: { volume: 1.0, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
-    });
+  try {
+    await audioEngine.init();
+
+    // AudioContextがsuspendedの場合は再度resumeを試みる
+    if (audioEngine.context.state === 'suspended') {
+      await audioEngine.context.resume();
+    }
+
+    const sampleRate = audioEngine.context.sampleRate;
+
+    // バンク1: 伯方の塩サンプルをロード（並列でリトライ付き）
+    const hakataSamples = [
+      { id: '1-1', file: '/samples/chop_伯方の塩.wav', label: '伯方の塩' },
+      { id: '1-2', file: '/samples/chop_は.wav', label: 'は' },
+      { id: '1-3', file: '/samples/chop_か.wav', label: 'か' },
+      { id: '1-4', file: '/samples/chop_た.wav', label: 'た' },
+      { id: '1-5', file: '/samples/chop_の.wav', label: 'の' },
+      { id: '1-6', file: '/samples/chop_し.wav', label: 'し' },
+      { id: '1-7', file: '/samples/chop_お.wav', label: 'お' }
+    ];
+
+    // 並列ロード（Promise.allSettledで全て完了を待つ）
+    const results = await Promise.allSettled(
+      hakataSamples.map(sample => loadSampleWithRetry(sample))
+    );
+
+    const loadedCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
+    console.log(`Bank A: ${loadedCount}/${hakataSamples.length} samples loaded`);
+
+    // バンク2: ドラムセット（16パッド）
+    const drumSounds = [
+      { id: '2-1', name: 'Kick', gen: () => generateKick(sampleRate) },
+      { id: '2-2', name: 'Snare', gen: () => generateSnare(sampleRate) },
+      { id: '2-3', name: 'Clap', gen: () => generateClap(sampleRate) },
+      { id: '2-4', name: 'Hi-Hat Closed', gen: () => generateHiHat(sampleRate, 0.1) },
+      { id: '2-5', name: 'Hi-Hat Open', gen: () => generateHiHat(sampleRate, 0.4) },
+      { id: '2-6', name: 'Tom Low', gen: () => generateTom(sampleRate, 100) },
+      { id: '2-7', name: 'Tom Mid', gen: () => generateTom(sampleRate, 150) },
+      { id: '2-8', name: 'Tom High', gen: () => generateTom(sampleRate, 200) },
+      { id: '2-9', name: 'Crash', gen: () => generateCrash(sampleRate) },
+      { id: '2-10', name: 'Ride', gen: () => generateRide(sampleRate) },
+      { id: '2-11', name: '808 Kick', gen: () => generate808Kick(sampleRate) },
+      { id: '2-12', name: '808 Snare', gen: () => generate808Snare(sampleRate) },
+      { id: '2-13', name: 'Rim', gen: () => generateRim(sampleRate) },
+      { id: '2-14', name: 'Cowbell', gen: () => generateCowbell(sampleRate) },
+      { id: '2-15', name: 'Shaker', gen: () => generateShaker(sampleRate) },
+      { id: '2-16', name: 'Claves', gen: () => generateClaves(sampleRate) }
+    ];
+
+    for (const drum of drumSounds) {
+      const buffer = drum.gen();
+      audioEngine.samples.set(drum.id, {
+        buffer: buffer,
+        settings: { volume: 1.0, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
+      });
+    }
+
+    // バンク3: シンセ & FX（16パッド）
+    const synthSounds = [
+      { id: '3-1', name: 'Sub Bass', gen: () => generateSubBass(sampleRate) },
+      { id: '3-2', name: 'Acid Bass', gen: () => generateAcidBass(sampleRate) },
+      { id: '3-3', name: 'Pluck', gen: () => generatePluck(sampleRate) },
+      { id: '3-4', name: 'Pad', gen: () => generatePad(sampleRate) },
+      { id: '3-5', name: 'Lead', gen: () => generateLead(sampleRate) },
+      { id: '3-6', name: 'Stab', gen: () => generateStab(sampleRate) },
+      { id: '3-7', name: 'Chord', gen: () => generateChord(sampleRate) },
+      { id: '3-8', name: 'Arp', gen: () => generateArp(sampleRate) },
+      { id: '3-9', name: 'Rise FX', gen: () => generateRiseFX(sampleRate) },
+      { id: '3-10', name: 'Down FX', gen: () => generateDownFX(sampleRate) },
+      { id: '3-11', name: 'Noise Hit', gen: () => generateNoiseHit(sampleRate) },
+      { id: '3-12', name: 'Laser', gen: () => generateLaser(sampleRate) },
+      { id: '3-13', name: 'Wobble', gen: () => generateWobble(sampleRate) },
+      { id: '3-14', name: 'FM Bell', gen: () => generateFMBell(sampleRate) },
+      { id: '3-15', name: 'Strings', gen: () => generateStrings(sampleRate) },
+      { id: '3-16', name: 'Brass', gen: () => generateBrass(sampleRate) }
+    ];
+
+    for (const synth of synthSounds) {
+      const buffer = synth.gen();
+      audioEngine.samples.set(synth.id, {
+        buffer: buffer,
+        settings: { volume: 1.0, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
+      });
+    }
+
+    console.log('Drum kit loaded on Bank B, Synth/FX loaded on Bank C');
+    samplesInitialized = true;
+  } catch (e) {
+    console.error('Error during sample initialization:', e);
+  } finally {
+    samplesLoading = false;
   }
-
-  // バンク3: シンセ & FX（9パッド）
-  const synthSounds = [
-    { id: '3-1', name: 'Sub Bass', gen: () => generateSubBass(sampleRate) },
-    { id: '3-2', name: 'Acid Bass', gen: () => generateAcidBass(sampleRate) },
-    { id: '3-3', name: 'Pluck', gen: () => generatePluck(sampleRate) },
-    { id: '3-4', name: 'Pad', gen: () => generatePad(sampleRate) },
-    { id: '3-5', name: 'Lead', gen: () => generateLead(sampleRate) },
-    { id: '3-6', name: 'Stab', gen: () => generateStab(sampleRate) },
-    { id: '3-7', name: 'Rise FX', gen: () => generateRiseFX(sampleRate) },
-    { id: '3-8', name: 'Noise Hit', gen: () => generateNoiseHit(sampleRate) },
-    { id: '3-9', name: 'FM Bell', gen: () => generateFMBell(sampleRate) }
-  ];
-
-  for (const synth of synthSounds) {
-    const buffer = synth.gen();
-    audioEngine.samples.set(synth.id, {
-      buffer: buffer,
-      settings: { volume: 1.0, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
-    });
-  }
-
-  console.log('Drum kit loaded on Bank B, Synth/FX loaded on Bank C');
-  samplesInitialized = true;
 }
 
 // ===== ドラム合成関数 =====
@@ -687,7 +743,6 @@ function render() {
       <button class="tabs__btn ${state.currentTab === 'sample' ? 'tabs__btn--active' : ''}" data-tab="sample">SAMPLE</button>
       <button class="tabs__btn ${state.currentTab === 'sequence' ? 'tabs__btn--active' : ''}" data-tab="sequence">SEQUENCE</button>
       <button class="tabs__btn ${state.currentTab === 'fx' ? 'tabs__btn--active' : ''}" data-tab="fx">FX</button>
-      <button class="tabs__menu">☰</button>
     </nav>
     
     <main class="main">
@@ -792,11 +847,11 @@ function renderSampleTab() {
   `;
 }
 
-// パッドレンダリング（3x3 = 9パッド）
+// パッドレンダリング（4x4 = 16パッド）
 function renderPads() {
-  const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C\'', 'D\''];
+  const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C\'', 'D\'', 'E\'', 'F\'', 'G\'', 'A\'', 'B\'', 'C\'\'', 'D\'\''];
 
-  return Array.from({ length: 9 }, (_, i) => {
+  return Array.from({ length: 16 }, (_, i) => {
     const padIndex = i + 1;
     const padId = getPadId(padIndex);
     const hasSample = audioEngine.hasSample(padId);
@@ -821,7 +876,7 @@ function renderPads() {
 
 // すべてのパッド波形を描画
 function drawAllPadWaveforms() {
-  for (let i = 1; i <= 9; i++) {
+  for (let i = 1; i <= 16; i++) {
     const canvas = document.querySelector(`[data-pad-canvas="${i}"]`);
     if (canvas) {
       drawPadWaveform(canvas, getPadId(i));

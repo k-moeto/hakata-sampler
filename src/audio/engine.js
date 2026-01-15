@@ -82,9 +82,14 @@ export class AudioEngine {
   /**
    * サンプルを再生
    */
-  play(padId, pitchOverride = null, reverse = false) {
+  async play(padId, pitchOverride = null, reverse = false) {
     const sample = this.samples.get(padId);
-    if (!sample) return;
+    if (!sample || !sample.buffer) return;
+
+    // AudioContextがsuspended状態の場合はresumeする
+    if (this.context && this.context.state === 'suspended') {
+      await this.context.resume();
+    }
 
     // 既に再生中なら停止
     this.stop(padId);

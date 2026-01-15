@@ -142,18 +142,7 @@ body {
   color: #FFFFFF;
 }
 
-.tabs__menu {
-  width: 40px;
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* ハンバーガーメニュー削除済み */
 
 /* ========================================
    メインコンテンツ
@@ -369,21 +358,21 @@ body {
 }
 
 /* ========================================
-   パッドグリッド（9パッド 3x3）
+   パッドグリッド（16パッド 4x4）
    ======================================== */
 
 .pad-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-xs);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-2xs);
   flex: 1;
   /* 固定フッターの高さ分のマージン */
   margin-bottom: 60px;
 }
 
 .pad {
-  aspect-ratio: 1.2 / 1;
-  /* 横長にして縦幅を縮小 */
+  aspect-ratio: 1 / 1;
+  /* 正方形 */
   background: var(--color-surface);
   border: 2px solid var(--color-secondary);
   border-radius: var(--radius-md);
