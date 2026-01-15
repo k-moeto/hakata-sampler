@@ -365,17 +365,18 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-2xs);
-  flex: 1;
   /* 固定フッターの高さ分のマージン */
   margin-bottom: 60px;
+  /* パッドグリッドエリアを制限 */
+  max-height: calc(100dvh - 280px);
 }
 
 .pad {
-  aspect-ratio: 1 / 1;
-  /* 正方形 */
+  aspect-ratio: 1.1 / 1;
+  /* やや横長にして縦幅を縮小 */
   background: var(--color-surface);
   border: 2px solid var(--color-secondary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -384,6 +385,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-sm);
+  min-height: 0;
 }
 
 .pad canvas {
