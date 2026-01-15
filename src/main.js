@@ -841,7 +841,7 @@ function renderSampleTab() {
       </button>
       
       <span class="samples-label">
-        ∧ SAMPLES
+        HAKATA SAMPLER
       </span>
     </div>
   `;
