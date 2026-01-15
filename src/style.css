@@ -469,6 +469,9 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-sm) 0;
+  /* モバイルブラウザのUI（検索バー等）を避ける */
+  padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px) + 20px);
+  margin-bottom: 0;
 }
 
 .bank-btns {
