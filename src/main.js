@@ -815,11 +815,6 @@ function renderSampleTab() {
           <span class="knob__label">PAN</span>
           <span class="knob__value">${(settings.pan || 0) > 0 ? 'R' : (settings.pan || 0) < 0 ? 'L' : 'C'}</span>
         </div>
-        
-        <div class="action-btns">
-          <button class="action-btn" id="editBtn">EDIT</button>
-          <button class="action-btn action-btn--danger" id="deleteBtn">DELETE</button>
-        </div>
       </div>
     </div>
     
@@ -886,11 +881,51 @@ function drawAllPadWaveforms() {
 
 // SEQUENCEタブ
 function renderSequenceTab() {
+  // バンクB（ドラム）の絵文字マッピング
+  const drumEmojis = {
+    1: '🥁', // Kick
+    2: '🪘', // Snare
+    3: '👏', // Clap
+    4: '🎩', // Hi-Hat Closed
+    5: '🎩', // Hi-Hat Open
+    6: '🔈', // Tom Low
+    7: '🔉', // Tom Mid
+    8: '🔊', // Tom High
+    9: '💥', // Crash
+    10: '🛎️', // Ride
+    11: '💣', // 808 Kick
+    12: '⚡', // 808 Snare
+    13: '🔔', // Rim
+    14: '🐄', // Cowbell
+    15: '🌊', // Shaker
+    16: '🪵'  // Claves
+  };
+
+  // バンクC（シンセ/FX）の絵文字マッピング
+  const synthEmojis = {
+    1: '🎸', // Sub Bass
+    2: '🧪', // Acid Bass
+    3: '🎹', // Pluck
+    4: '☁️', // Pad
+    5: '✨', // Lead
+    6: '⚔️', // Stab
+    7: '🎵', // Chord
+    8: '🎶', // Arp
+    9: '📈', // Rise FX
+    10: '📉', // Down FX
+    11: '💨', // Noise Hit
+    12: '🔫', // Laser
+    13: '〰️', // Wobble
+    14: '🔔', // FM Bell
+    15: '🎻', // Strings
+    16: '🎺'  // Brass
+  };
+
   // 全バンク（A, B, C）のトラックを表示
   const banks = [
-    { id: 1, name: 'A', color: 'primary' },
-    { id: 2, name: 'B', color: 'secondary' },
-    { id: 3, name: 'C', color: 'accent' }
+    { id: 1, name: 'A', color: 'primary', emojis: null },
+    { id: 2, name: 'B', color: 'secondary', emojis: drumEmojis },
+    { id: 3, name: 'C', color: 'accent', emojis: synthEmojis }
   ];
 
   return `
@@ -905,9 +940,11 @@ function renderSequenceTab() {
     const padId = `${bank.id}-${padIndex}`;
     const hasSample = audioEngine.hasSample(padId);
     if (!hasSample) return ''; // サンプルがない場合はスキップ
+    const emoji = bank.emojis ? bank.emojis[padIndex] : '';
+    const label = emoji || `${bank.name}${padIndex}`;
     return `
               <div class="sequencer__track">
-                <div class="sequencer__track-label sequencer__track-label--${bank.name.toLowerCase()}">${bank.name}${padIndex}</div>
+                <div class="sequencer__track-label sequencer__track-label--${bank.name.toLowerCase()}">${label}</div>
                 <div class="sequencer__steps">
                   ${Array.from({ length: 16 }, (_, step) => {
       const isActive = sequencer.isStepActive(padId, step);
