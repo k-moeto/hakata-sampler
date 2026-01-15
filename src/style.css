@@ -186,7 +186,7 @@ body {
 }
 
 .waveform-display {
-  height: 100px;
+  height: 60px;
   background: linear-gradient(180deg, var(--color-secondary-light) 0%, var(--color-secondary) 100%);
   border-radius: var(--radius-sm);
   margin-bottom: var(--spacing-sm);
@@ -378,11 +378,12 @@ body {
   gap: var(--spacing-xs);
   flex: 1;
   /* 固定フッターの高さ分のマージン */
-  margin-bottom: 80px;
+  margin-bottom: 60px;
 }
 
 .pad {
-  aspect-ratio: 1;
+  aspect-ratio: 1.2 / 1;
+  /* 横長にして縦幅を縮小 */
   background: var(--color-surface);
   border: 2px solid var(--color-secondary);
   border-radius: var(--radius-md);
