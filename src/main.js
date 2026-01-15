@@ -886,27 +886,43 @@ function drawAllPadWaveforms() {
 
 // SEQUENCEタブ
 function renderSequenceTab() {
+  // 全バンク（A, B, C）のトラックを表示
+  const banks = [
+    { id: 1, name: 'A', color: 'primary' },
+    { id: 2, name: 'B', color: 'secondary' },
+    { id: 3, name: 'C', color: 'accent' }
+  ];
+
   return `
     <div class="sequencer">
-      ${Array.from({ length: 16 }, (_, i) => {
+      ${banks.map(bank => `
+        <div class="sequencer__bank">
+          <div class="sequencer__bank-header" data-bank="${bank.id}">
+            <span class="sequencer__bank-name">${bank.name}</span>
+          </div>
+          ${Array.from({ length: 16 }, (_, i) => {
     const padIndex = i + 1;
-    const padId = getPadId(padIndex);
+    const padId = `${bank.id}-${padIndex}`;
+    const hasSample = audioEngine.hasSample(padId);
+    if (!hasSample) return ''; // サンプルがない場合はスキップ
     return `
-          <div class="sequencer__track">
-            <div class="sequencer__track-label">${padIndex}</div>
-            <div class="sequencer__steps">
-              ${Array.from({ length: 16 }, (_, step) => {
+              <div class="sequencer__track">
+                <div class="sequencer__track-label sequencer__track-label--${bank.name.toLowerCase()}">${bank.name}${padIndex}</div>
+                <div class="sequencer__steps">
+                  ${Array.from({ length: 16 }, (_, step) => {
       const isActive = sequencer.isStepActive(padId, step);
       const isCurrent = sequencer.currentStep === step && sequencer.isPlaying;
       let stepClass = 'sequencer__step';
       if (isActive) stepClass += ' sequencer__step--active';
       if (isCurrent) stepClass += ' sequencer__step--current';
-      return `<button class="${stepClass}" data-seq-pad="${padIndex}" data-seq-step="${step}"></button>`;
+      return `<button class="${stepClass}" data-seq-pad-id="${padId}" data-seq-step="${step}"></button>`;
     }).join('')}
-            </div>
-          </div>
-        `;
+                </div>
+              </div>
+            `;
   }).join('')}
+        </div>
+      `).join('')}
     </div>
     
     <!-- トランスポート＆コントロール -->
@@ -1238,11 +1254,13 @@ function attachEventListeners() {
   // シーケンサーステップ
   document.querySelectorAll('.sequencer__step').forEach(step => {
     step.addEventListener('click', () => {
-      const padIndex = parseInt(step.dataset.seqPad);
-      const padId = getPadId(padIndex);
+      // 新しい形式: data-seq-pad-id="1-1" (バンク-パッド)
+      const padId = step.dataset.seqPadId;
       const stepIndex = parseInt(step.dataset.seqStep);
-      sequencer.toggleStep(padId, stepIndex);
-      step.classList.toggle('sequencer__step--active');
+      if (padId) {
+        sequencer.toggleStep(padId, stepIndex);
+        step.classList.toggle('sequencer__step--active');
+      }
     });
   });
 

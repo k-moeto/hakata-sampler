@@ -644,13 +644,31 @@ body {
   align-items: center;
   gap: var(--spacing-xs);
   background: var(--color-surface);
-  padding: var(--spacing-xs);
+  padding: 2px var(--spacing-xs);
   border-radius: var(--radius-xs);
 }
 
+/* バンクヘッダー */
+.sequencer__bank {
+  margin-bottom: var(--spacing-xs);
+}
+
+.sequencer__bank-header {
+  padding: 2px var(--spacing-xs);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xs);
+  margin-bottom: 2px;
+}
+
+.sequencer__bank-name {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
 .sequencer__track-label {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 16px;
   background: var(--color-primary);
   border-radius: var(--radius-xs);
   display: flex;
@@ -660,6 +678,19 @@ body {
   font-weight: 700;
   color: #FFFFFF;
   flex-shrink: 0;
+}
+
+/* バンク別カラー */
+.sequencer__track-label--a {
+  background: var(--color-primary);
+}
+
+.sequencer__track-label--b {
+  background: var(--color-accent);
+}
+
+.sequencer__track-label--c {
+  background: #8B5CF6;
 }
 
 .sequencer__steps {
