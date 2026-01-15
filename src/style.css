@@ -369,12 +369,12 @@ body {
 }
 
 /* ========================================
-   パッドグリッド（16パッド 4x4）
+   パッドグリッド（9パッド 3x3）
    ======================================== */
 
 .pad-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-xs);
   flex: 1;
 }

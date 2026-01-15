@@ -80,24 +80,17 @@ async function initializeSamples() {
     }
   }
 
-  // バンク2: ドラムセット
+  // バンク2: ドラムセット（9パッド）
   const drumSounds = [
     { id: '2-1', name: 'Kick', gen: () => generateKick(sampleRate) },
     { id: '2-2', name: 'Snare', gen: () => generateSnare(sampleRate) },
     { id: '2-3', name: 'Clap', gen: () => generateClap(sampleRate) },
     { id: '2-4', name: 'Hi-Hat Closed', gen: () => generateHiHat(sampleRate, 0.1) },
     { id: '2-5', name: 'Hi-Hat Open', gen: () => generateHiHat(sampleRate, 0.4) },
-    { id: '2-6', name: 'Tom High', gen: () => generateTom(sampleRate, 200) },
-    { id: '2-7', name: 'Tom Mid', gen: () => generateTom(sampleRate, 150) },
-    { id: '2-8', name: 'Tom Low', gen: () => generateTom(sampleRate, 100) },
-    { id: '2-9', name: 'Crash', gen: () => generateCrash(sampleRate) },
-    { id: '2-10', name: 'Ride', gen: () => generateRide(sampleRate) },
-    { id: '2-11', name: 'Rim', gen: () => generateRim(sampleRate) },
-    { id: '2-12', name: 'Cowbell', gen: () => generateCowbell(sampleRate) },
-    { id: '2-13', name: 'Shaker', gen: () => generateShaker(sampleRate) },
-    { id: '2-14', name: '808 Kick', gen: () => generate808Kick(sampleRate) },
-    { id: '2-15', name: '808 Snare', gen: () => generate808Snare(sampleRate) },
-    { id: '2-16', name: 'Claves', gen: () => generateClaves(sampleRate) }
+    { id: '2-6', name: 'Tom', gen: () => generateTom(sampleRate, 150) },
+    { id: '2-7', name: 'Crash', gen: () => generateCrash(sampleRate) },
+    { id: '2-8', name: '808 Kick', gen: () => generate808Kick(sampleRate) },
+    { id: '2-9', name: 'Shaker', gen: () => generateShaker(sampleRate) }
   ];
 
   for (const drum of drumSounds) {
@@ -108,24 +101,17 @@ async function initializeSamples() {
     });
   }
 
-  // バンク3: シンセ & FX（多彩な音色）
+  // バンク3: シンセ & FX（9パッド）
   const synthSounds = [
     { id: '3-1', name: 'Sub Bass', gen: () => generateSubBass(sampleRate) },
     { id: '3-2', name: 'Acid Bass', gen: () => generateAcidBass(sampleRate) },
     { id: '3-3', name: 'Pluck', gen: () => generatePluck(sampleRate) },
     { id: '3-4', name: 'Pad', gen: () => generatePad(sampleRate) },
     { id: '3-5', name: 'Lead', gen: () => generateLead(sampleRate) },
-    { id: '3-6', name: 'Arp', gen: () => generateArp(sampleRate) },
-    { id: '3-7', name: 'Stab', gen: () => generateStab(sampleRate) },
-    { id: '3-8', name: 'Chord', gen: () => generateChord(sampleRate) },
-    { id: '3-9', name: 'Rise FX', gen: () => generateRiseFX(sampleRate) },
-    { id: '3-10', name: 'Down FX', gen: () => generateDownFX(sampleRate) },
-    { id: '3-11', name: 'Noise Hit', gen: () => generateNoiseHit(sampleRate) },
-    { id: '3-12', name: 'Laser', gen: () => generateLaser(sampleRate) },
-    { id: '3-13', name: 'Wobble', gen: () => generateWobble(sampleRate) },
-    { id: '3-14', name: 'FM Bell', gen: () => generateFMBell(sampleRate) },
-    { id: '3-15', name: 'Strings', gen: () => generateStrings(sampleRate) },
-    { id: '3-16', name: 'Brass', gen: () => generateBrass(sampleRate) }
+    { id: '3-6', name: 'Stab', gen: () => generateStab(sampleRate) },
+    { id: '3-7', name: 'Rise FX', gen: () => generateRiseFX(sampleRate) },
+    { id: '3-8', name: 'Noise Hit', gen: () => generateNoiseHit(sampleRate) },
+    { id: '3-9', name: 'FM Bell', gen: () => generateFMBell(sampleRate) }
   ];
 
   for (const synth of synthSounds) {
@@ -806,11 +792,11 @@ function renderSampleTab() {
   `;
 }
 
-// パッドレンダリング
+// パッドレンダリング（3x3 = 9パッド）
 function renderPads() {
-  const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C\'', 'D\'', 'E\'', 'F\'', 'G\'', 'A\'', 'B\'', 'C"', 'D"'];
+  const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C\'', 'D\''];
 
-  return Array.from({ length: 16 }, (_, i) => {
+  return Array.from({ length: 9 }, (_, i) => {
     const padIndex = i + 1;
     const padId = getPadId(padIndex);
     const hasSample = audioEngine.hasSample(padId);
@@ -835,7 +821,7 @@ function renderPads() {
 
 // すべてのパッド波形を描画
 function drawAllPadWaveforms() {
-  for (let i = 1; i <= 16; i++) {
+  for (let i = 1; i <= 9; i++) {
     const canvas = document.querySelector(`[data-pad-canvas="${i}"]`);
     if (canvas) {
       drawPadWaveform(canvas, getPadId(i));
