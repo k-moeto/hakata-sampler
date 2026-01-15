@@ -69,7 +69,7 @@ async function loadSampleWithRetry(sample, maxRetries = 3) {
       const audioBuffer = await audioEngine.context.decodeAudioData(bufferCopy);
       audioEngine.samples.set(sample.id, {
         buffer: audioBuffer,
-        settings: { volume: 1.0, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
+        settings: { volume: 2.5, pitch: 1.0, pan: 0, trimStart: 0, trimEnd: 1, loop: false }
       });
       console.log(`✓ Loaded ${sample.label}`);
       return true;
