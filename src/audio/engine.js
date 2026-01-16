@@ -40,6 +40,49 @@ export class AudioEngine {
     if (this.context.state === 'suspended') {
       await this.context.resume();
     }
+
+    // 画面復帰時にAudioContextを自動resume
+    this.setupVisibilityHandler();
+    this.setupInteractionHandler();
+  }
+
+  /**
+   * 画面復帰時のAudioContext resume処理
+   */
+  setupVisibilityHandler() {
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && this.context) {
+        if (this.context.state === 'suspended') {
+          try {
+            await this.context.resume();
+            console.log('AudioContext resumed on visibility change');
+          } catch (e) {
+            console.warn('Failed to resume AudioContext:', e);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * ユーザー操作時にAudioContextを確実にresume
+   */
+  setupInteractionHandler() {
+    const resumeOnInteraction = async () => {
+      if (this.context && this.context.state === 'suspended') {
+        try {
+          await this.context.resume();
+          console.log('AudioContext resumed on interaction');
+        } catch (e) {
+          console.warn('Failed to resume AudioContext:', e);
+        }
+      }
+    };
+
+    // タッチとクリックの両方に対応
+    document.addEventListener('touchstart', resumeOnInteraction, { passive: true });
+    document.addEventListener('touchend', resumeOnInteraction, { passive: true });
+    document.addEventListener('click', resumeOnInteraction);
   }
 
   /**
