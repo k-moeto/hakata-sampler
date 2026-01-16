@@ -106,7 +106,17 @@ async function initializeSamples() {
       { id: '1-4', file: '/samples/chop_た.wav', label: 'た' },
       { id: '1-5', file: '/samples/chop_の.wav', label: 'の' },
       { id: '1-6', file: '/samples/chop_し.wav', label: 'し' },
-      { id: '1-7', file: '/samples/chop_お.wav', label: 'お' }
+      { id: '1-7', file: '/samples/chop_お.wav', label: 'お' },
+      // 新規追加サンプル（PAD 8-16）
+      { id: '1-8', file: '/samples/[hakata]塩！.mp3', label: '塩！' },
+      { id: '1-9', file: '/samples/[hakata]塩分補給！.mp3', label: '塩分補給！' },
+      { id: '1-10', file: '/samples/[hakata]さらさら.mp3', label: 'さらさら' },
+      { id: '1-11', file: '/samples/[hakata]さらりんちょ.mp3', label: 'さらりんちょ' },
+      { id: '1-12', file: '/samples/[hakata]しおいく！.mp3', label: 'しおいく！' },
+      { id: '1-13', file: '/samples/[hakata]ミネラル豊富.mp3', label: 'ミネラル豊富' },
+      { id: '1-14', file: '/samples/[hakata]かけて〜.mp3', label: 'かけて〜' },
+      { id: '1-15', file: '/samples/[hakata]ふって〜.mp3', label: 'ふって〜' },
+      { id: '1-16', file: '/samples/[hakata]味の違いわかる〜？.mp3', label: '味の違いわかる〜？' }
     ];
 
     // 並列ロード（Promise.allSettledで全て完了を待つ）
