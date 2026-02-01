@@ -31,7 +31,9 @@ const state = {
     resonance: 0
   },
   // サンプルコピー
-  copiedSample: null
+  copiedSample: null,
+  // ローディング状態
+  isLoading: false
 };
 
 // エフェクトエンジン（後で初期化）
@@ -748,6 +750,15 @@ function render() {
   const app = document.getElementById('app');
 
   app.innerHTML = `
+    ${state.isLoading ? `
+    <div class="loading-overlay">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Loading...</p>
+      </div>
+    </div>
+    ` : ''}
+    
     <!-- タブ -->
     <nav class="tabs">
       <button class="tabs__btn ${state.currentTab === 'sample' ? 'tabs__btn--active' : ''}" data-tab="sample">SAMPLE</button>
@@ -1470,6 +1481,10 @@ async function init() {
 
   // 最初のユーザー操作でサンプルとエフェクトを初期化
   document.addEventListener('click', async function initOnClick() {
+    // ローディング開始
+    state.isLoading = true;
+    render();
+
     await initializeSamples();
 
     // エフェクトエンジン初期化
@@ -1478,6 +1493,8 @@ async function init() {
       effectsEngine.init(audioEngine.masterGain);
     }
 
+    // ローディング終了
+    state.isLoading = false;
     render();
     document.removeEventListener('click', initOnClick);
   }, { once: true });
