@@ -1476,28 +1476,31 @@ function attachEventListeners() {
 
 // 初期化
 async function init() {
-  // まずUIを表示
+  // ローディング開始（UIを先に表示）
+  state.isLoading = true;
   render();
 
-  // 最初のユーザー操作でサンプルとエフェクトを初期化
-  document.addEventListener('click', async function initOnClick() {
-    // ローディング開始
-    state.isLoading = true;
-    render();
+  // ページ読み込み時にサンプルをロード開始
+  await initializeSamples();
 
-    await initializeSamples();
+  // エフェクトエンジン初期化
+  if (audioEngine.context && audioEngine.masterGain) {
+    effectsEngine = new EffectsEngine(audioEngine.context);
+    effectsEngine.init(audioEngine.masterGain);
+  }
 
-    // エフェクトエンジン初期化
-    if (audioEngine.context && audioEngine.masterGain) {
-      effectsEngine = new EffectsEngine(audioEngine.context);
-      effectsEngine.init(audioEngine.masterGain);
-    }
+  // ローディング終了
+  state.isLoading = false;
+  render();
 
-    // ローディング終了
-    state.isLoading = false;
-    render();
-    document.removeEventListener('click', initOnClick);
-  }, { once: true });
+  // AudioContextがsuspendedの場合、最初のユーザー操作でresumeする
+  if (audioEngine.context && audioEngine.context.state === 'suspended') {
+    document.addEventListener('click', async function resumeAudio() {
+      await audioEngine.context.resume();
+      document.removeEventListener('click', resumeAudio);
+    }, { once: true });
+  }
 }
 
 init();
+
