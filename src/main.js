@@ -93,10 +93,8 @@ async function initializeSamples() {
   try {
     await audioEngine.init();
 
-    // AudioContextがsuspendedの場合は再度resumeを試みる
-    if (audioEngine.context.state === 'suspended') {
-      await audioEngine.context.resume();
-    }
+    // 注意: suspended状態でもdecodeAudioDataは動作するため、resumeは待たない
+    // resumeはユーザー操作時に自動的に行われる（setupInteractionHandler）
 
     const sampleRate = audioEngine.context.sampleRate;
 

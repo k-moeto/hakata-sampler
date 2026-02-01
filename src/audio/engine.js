@@ -36,10 +36,8 @@ export class AudioEngine {
     this.masterGain = this.context.createGain();
     this.masterGain.connect(this.context.destination);
 
-    // iOS対策: ユーザーインタラクション後にresumeする
-    if (this.context.state === 'suspended') {
-      await this.context.resume();
-    }
+    // 注意: resume()はユーザー操作時に行うため、ここではawaitしない
+    // suspended状態でもdecodeAudioDataは動作する
 
     // 画面復帰時にAudioContextを自動resume
     this.setupVisibilityHandler();
