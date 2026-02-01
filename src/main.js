@@ -954,7 +954,7 @@ function renderSequenceTab() {
     const label = emoji || `${bank.name}${padIndex}`;
     return `
               <div class="sequencer__track">
-                <div class="sequencer__track-label sequencer__track-label--${bank.name.toLowerCase()}">${label}</div>
+                <div class="sequencer__track-label sequencer__track-label--${bank.name.toLowerCase()}" data-preview-pad="${padId}" style="cursor: pointer;">${label}</div>
                 <div class="sequencer__steps">
                   ${Array.from({ length: 16 }, (_, step) => {
       const isActive = sequencer.isStepActive(padId, step);
@@ -1307,6 +1307,22 @@ function attachEventListeners() {
       if (padId) {
         sequencer.toggleStep(padId, stepIndex);
         step.classList.toggle('sequencer__step--active');
+      }
+    });
+  });
+
+  // トラックラベルをクリックでサウンドプレビュー
+  document.querySelectorAll('.sequencer__track-label').forEach(label => {
+    label.addEventListener('click', async () => {
+      await audioEngine.init();
+      const padId = label.dataset.previewPad;
+      if (padId && audioEngine.hasSample(padId)) {
+        audioEngine.play(padId);
+        // ビジュアルフィードバック
+        label.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          label.style.transform = '';
+        }, 100);
       }
     });
   });
